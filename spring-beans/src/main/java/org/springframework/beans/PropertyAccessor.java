@@ -16,10 +16,10 @@
 
 package org.springframework.beans;
 
-import java.util.Map;
-
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.lang.Nullable;
+
+import java.util.Map;
 
 /**
  * Common interface for classes that can access named properties
@@ -31,6 +31,11 @@ import org.springframework.lang.Nullable;
  * @see BeanWrapper
  * @see PropertyAccessorFactory#forBeanPropertyAccess
  * @see PropertyAccessorFactory#forDirectFieldAccess
+ * 理解为四类方法
+ * 	isReadableProperty()：判断指定 property 是否可读，是否包含 getter 方法
+ * 	isWritableProperty()：判断指定 property 是否可写,是否包含 setter 方法
+ * 	getPropertyType()：获取指定 propertyName 的类型
+ * 	setPropertyValue()：设置指定 propertyValue
  */
 public interface PropertyAccessor {
 

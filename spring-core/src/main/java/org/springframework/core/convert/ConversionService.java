@@ -16,6 +16,9 @@
 
 package org.springframework.core.convert;
 
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.converter.ConverterFactory;
+import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.lang.Nullable;
 
 /**
@@ -25,6 +28,19 @@ import org.springframework.lang.Nullable;
  * @author Keith Donald
  * @author Phillip Webb
  * @since 3.0
+ * TOP**
+ * Spring 类型转换器体系中的核心接口
+ * 该接口定义了两类方法 canConvert() 和 convert()，
+ * 其中 canConvert() 用于判 sourceType 能否转成 targetType ,而 convert() 用于将 source 转成转入的 TargetType 类型实例。
+ * GenericConversionService提供该接口的实现。
+ *
+ * 三个重要的子类
+ * @see Converter	将 S 类型对象转为 T 类型对象。
+ * @see GenericConverter	根据源类对象及目标类对象所在的宿主类中的上下文信息进行类型转换。
+ * @see ConverterFactory
+ * 		将相同系列多个 “同质” Converter 封装在一起。
+ * 		如果希望将一种类型的对象转换为另一种类型及其子类的对象(例如将 String 转换为 Number 及 Number 子类(Integer、Long、Double 等)对象)可使用该转换器工厂类。
+ *
  */
 public interface ConversionService {
 

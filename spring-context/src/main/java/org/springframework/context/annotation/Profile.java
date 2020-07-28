@@ -16,14 +16,10 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
+
+import java.lang.annotation.*;
 
 /**
  * Indicates that a component is eligible for registration when one or more
@@ -89,6 +85,9 @@ import org.springframework.core.env.ConfigurableEnvironment;
  * @see AbstractEnvironment#DEFAULT_PROFILES_PROPERTY_NAME
  * @see Conditional
  * @see org.springframework.test.context.ActiveProfiles
+ *
+ * 剖面，只有激活的剖面的组件/配置才会注册到 Spring 容器，类似于 Spring Boot 中的 profile。
+ * profile 则表示当前的运行环境，对于应用程序中的 properties 而言，并不是所有的都会加载到系统中，只有其属性与 profile 一直才会被激活加载，
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

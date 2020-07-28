@@ -16,14 +16,15 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionReader;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.lang.Nullable;
+
+import java.io.IOException;
 
 /**
  * Base class for {@link org.springframework.context.ApplicationContext}
@@ -119,17 +120,33 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * This implementation performs an actual refresh of this context's underlying
 	 * bean factory, shutting down the previous bean factory (if any) and
 	 * initializing a fresh bean factory for the next phase of the context's lifecycle.
+	 * 步骤
+	 * 1.判断当前容器是否存在一个 BeanFactory，如果存在则对其进行销毁和关闭
+	 * 2.调用 createBeanFactory() 创建一个 BeanFactory 实例，其实就是 DefaultListableBeanFactory
+	 * 3.自定义 BeanFactory
+	 * 4.加载 BeanDefinition
+	 *   @see BeanDefinitionReader#loadBeanDefinitions(String) 	这个是BeanFactory中的实现
+	 * 	 @see AbstractXmlApplicationContext#loadBeanDefinitions(DefaultListableBeanFactory)  这里的实现最终一样，例如AbstractXmlApplicationContext
+	 * 5.将创建好的 bean 工厂的引用交给的 context 来管理
+	 *
+	 * @加载BeanDefinitions
+	 *  委派模式，这里列举一个实现
+	 *  @see AbstractXmlApplicationContext#loadBeanDefinitions
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		//如果已经有容器，销毁容器中的bean，关闭容器
 		if (hasBeanFactory()) {
 			destroyBeans();
 			closeBeanFactory();
 		}
 		try {
+			//创建IOC容器
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
 			beanFactory.setSerializationId(getId());
+			//对IOC容器进行定制化，如设置启动参数，开启注解的自动装配等
 			customizeBeanFactory(beanFactory);
+			//调用载入Bean定义的方法，主要这里又使用了一个委派模式，在当前类中只定义了抽象的loadBeanDefinitions方法，具体的实现调用子类容器
 			loadBeanDefinitions(beanFactory);
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;

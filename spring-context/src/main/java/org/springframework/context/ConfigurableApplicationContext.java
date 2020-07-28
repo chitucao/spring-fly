@@ -16,15 +16,16 @@
 
 package org.springframework.context;
 
-import java.io.Closeable;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ProtocolResolver;
 import org.springframework.lang.Nullable;
+
+import java.io.Closeable;
 
 /**
  * SPI interface to be implemented by most if not all application contexts.
@@ -39,6 +40,22 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @author Chris Beams
  * @since 03.11.2003
+ * ConfigurableApplicationContext 接口提供的方法都是对 ApplicationContext 进行配置的
+ * 对于ApplicationContext进行了扩展，提供了生命周期的关联功能
+ *
+ * 两个实现接口
+ * @see Lifecycle	对 context 生命周期的管理，它提供 start() 和 stop() 方法启动和暂停组件。
+ * @see Closeable	标准 JDK 所提供的一个接口，用于最后关闭组件释放资源等。
+ * 	实现位置
+ * 		@see AbstractApplicationContext#close()
+ * 			用于关闭 ApplicationContext 销毁所有 bean ，此外如果注册有 JVM shutdown hook，同样要将其移除。
+ * 		@see AbstractApplicationContext#doClose()
+ * 			发布 ContextClosedEvent 事件，销毁所有 bean（单例），关闭 BeanFactory 。
+ *
+ * @see #refresh()	刷新 Spring 的应用上下文
+ * 默认实现位置
+ *  @see AbstractApplicationContext#refresh()
+ *
  */
 public interface ConfigurableApplicationContext extends ApplicationContext, Lifecycle, Closeable {
 
@@ -90,6 +107,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	/**
 	 * Set the unique id of this application context.
 	 * @since 3.0
+	 * 为 ApplicationContext 设置唯一 ID
 	 */
 	void setId(String id);
 
@@ -100,6 +118,8 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * for example in case of WebApplicationContext setup.
 	 * @param parent the parent context
 	 * @see org.springframework.web.context.ConfigurableWebApplicationContext
+	 * 为 ApplicationContext 设置 parent
+	 * 父类不应该被修改：如果创建的对象不可用时，则应该在构造函数外部设置它
 	 */
 	void setParent(@Nullable ApplicationContext parent);
 
@@ -107,6 +127,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * Set the {@code Environment} for this application context.
 	 * @param environment the new environment
 	 * @since 3.1
+	 * 设置 Environment
 	 */
 	void setEnvironment(ConfigurableEnvironment environment);
 
@@ -114,6 +135,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * Return the {@code Environment} for this application context in configurable
 	 * form, allowing for further customization.
 	 * @since 3.1
+	 * 获取 Environment
 	 */
 	@Override
 	ConfigurableEnvironment getEnvironment();
@@ -123,6 +145,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * bean factory of this application context on refresh, before any of the
 	 * bean definitions get evaluated. To be invoked during context configuration.
 	 * @param postProcessor the factory processor to register
+	 * 添加 BeanFactoryPostProcessor
 	 */
 	void addBeanFactoryPostProcessor(BeanFactoryPostProcessor postProcessor);
 
@@ -135,6 +158,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * @param listener the ApplicationListener to register
 	 * @see org.springframework.context.event.ContextRefreshedEvent
 	 * @see org.springframework.context.event.ContextClosedEvent
+	 * 添加 ApplicationListener
 	 */
 	void addApplicationListener(ApplicationListener<?> listener);
 
@@ -144,6 +168,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * <p>Any such resolver will be invoked ahead of this context's standard
 	 * resolution rules. It may therefore also override any default rules.
 	 * @since 4.3
+	 * 添加 ProtocolResolver
 	 */
 	void addProtocolResolver(ProtocolResolver resolver);
 
@@ -156,6 +181,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * @throws BeansException if the bean factory could not be initialized
 	 * @throws IllegalStateException if already initialized and multiple refresh
 	 * attempts are not supported
+	 * 加载或者刷新配置（这是一个非常重要的方法）
 	 */
 	void refresh() throws BeansException, IllegalStateException;
 
@@ -166,6 +192,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * (at max) will be registered for each context instance.
 	 * @see java.lang.Runtime#addShutdownHook
 	 * @see #close()
+	 * 注册 shutdown hook
 	 */
 	void registerShutdownHook();
 
@@ -176,6 +203,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * parent contexts have their own, independent lifecycle.
 	 * <p>This method can be called multiple times without side effects: Subsequent
 	 * {@code close} calls on an already closed context will be ignored.
+	 * 关闭 ApplicationContext
 	 */
 	@Override
 	void close();
@@ -187,6 +215,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * @see #refresh()
 	 * @see #close()
 	 * @see #getBeanFactory()
+	 * 判断ApplicationContext 是否处于激活状态
 	 */
 	boolean isActive();
 
@@ -208,6 +237,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * @see #refresh()
 	 * @see #close()
 	 * @see #addBeanFactoryPostProcessor
+	 * 获取当前上下文的 BeanFactory
 	 */
 	ConfigurableListableBeanFactory getBeanFactory() throws IllegalStateException;
 

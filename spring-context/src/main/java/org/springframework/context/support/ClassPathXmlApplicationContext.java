@@ -48,6 +48,34 @@ import org.springframework.util.Assert;
  * @see #getResource
  * @see #getResourceByPath
  * @see GenericApplicationContext
+ *
+ *@初始化方法入口
+ * 这几个web容器主要都用到了装饰器模式和策略模式，最终都是调用的refresh方法
+ * @see #ClassPathXmlApplicationContext(java.lang.String[], boolean, org.springframework.context.ApplicationContext)
+ *
+ *@对bean配置信息的定位，将Bean配置信息定位为Spring封装的Resource
+ * @see #setConfigLocations
+ *
+ *@IOC真正的初始化方法
+ * @see AbstractApplicationContext#refresh()
+ *
+ *
+ * 继承体系	模板方法模式的经典使用
+ * @see org.springframework.context.support.AbstractApplicationContext	实现了 ConfigurableApplicationContext 这个全家桶接口
+ *       @see org.springframework.context.support.AbstractRefreshableApplicationContext
+ *             @see org.springframework.context.support.AbstractRefreshableConfigApplicationContext	实现了 BeanNameAware和InitializingBean 接口
+ *                   org.springframework.context.support.AbstractXmlApplicationContext
+ *                         org.springframework.context.support.ClassPathXmlApplicationContext
+ * 综合以上接口，所有的接口有
+ *  BeanFactory：Spring 容器 Bean 的管理
+ *  MessageSource：管理 message ，实现国际化等功能
+ *  ApplicationEventPublisher：事件发布
+ *  ResourcePatternResolver：资源加载
+ *  EnvironmentCapable：系统 Environment（profile + Properties） 相关
+ *  Lifecycle：管理生命周期
+ *  Closeable：关闭，释放资源
+ *  InitializingBean：自定义初始化
+ *  BeanNameAware：设置 beanName 的 Aware 接口
  */
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
 
@@ -133,12 +161,12 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	 * @param parent the parent context
 	 * @throws BeansException if context creation failed
 	 * @see #refresh()
+	 * @see AbstractApplicationContext#refresh() 	最终初始化IOC容器的地方
 	 */
-	public ClassPathXmlApplicationContext(
-			String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
-			throws BeansException {
-
+	public ClassPathXmlApplicationContext(String[] configLocations, boolean refresh, @Nullable ApplicationContext parent) throws BeansException {
+		// 在父类的构造方法里设置了bean的资源加载器
 		super(parent);
+		// 设置bean配置信息的定位路径
 		setConfigLocations(configLocations);
 		if (refresh) {
 			refresh();

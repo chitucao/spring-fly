@@ -35,6 +35,15 @@ import org.springframework.util.StringUtils;
  * @see #setConfigLocation
  * @see #setConfigLocations
  * @see #getDefaultConfigLocations
+ *
+ * @对bean配置信息的定位
+ *  @see #setConfigLocations
+ *
+ * @see InitializingBean
+ *  执行 refresh() ，该方法在 AbstractApplicationContext 中执行，执行整个 Spring 容器的初始化过程。
+ * @see BeanNameAware
+ *  设置 bean name 的接口。
+ *
  */
 public abstract class AbstractRefreshableConfigApplicationContext extends AbstractRefreshableApplicationContext
 		implements BeanNameAware, InitializingBean {
@@ -65,7 +74,9 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * i.e. with distinct locations separated by commas, semicolons or whitespace.
 	 * <p>If not set, the implementation may use a default as appropriate.
 	 */
+	//处理单个资源文件路径为一个字符串的情况
 	public void setConfigLocation(String location) {
+		//即多个资源文件路径之间用” ,; \t\n”分隔，解析成数组形式
 		setConfigLocations(StringUtils.tokenizeToStringArray(location, CONFIG_LOCATION_DELIMITERS));
 	}
 
@@ -73,11 +84,13 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * Set the config locations for this application context.
 	 * <p>If not set, the implementation may use a default as appropriate.
 	 */
+	//解析Bean定义资源文件的路径，处理多个资源文件字符串数组
 	public void setConfigLocations(@Nullable String... locations) {
 		if (locations != null) {
 			Assert.noNullElements(locations, "Config locations must not be null");
 			this.configLocations = new String[locations.length];
 			for (int i = 0; i < locations.length; i++) {
+				// resolvePath为同一个类中将字符串解析为路径的方法
 				this.configLocations[i] = resolvePath(locations[i]).trim();
 			}
 		}

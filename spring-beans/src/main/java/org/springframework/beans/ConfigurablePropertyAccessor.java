@@ -30,6 +30,8 @@ import org.springframework.lang.Nullable;
  * @author Stephane Nicoll
  * @since 2.0
  * @see BeanWrapper
+ *
+ * setConversionService() 和 getConversionService() 则是用于集成 Spring 的 ConversionService 类型转换体系。
  */
 public interface ConfigurablePropertyAccessor extends PropertyAccessor, PropertyEditorRegistry, TypeConverter {
 

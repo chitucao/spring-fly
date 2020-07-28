@@ -41,6 +41,7 @@ import org.springframework.web.context.ConfigurableWebEnvironment;
  * @author Chris Beams
  * @since 3.1
  * @see StandardEnvironment
+ * 承自 StandardEnvironment ，Servlet(Web) 环境下的标准 Environment 实现
  */
 public class StandardServletEnvironment extends StandardEnvironment implements ConfigurableWebEnvironment {
 

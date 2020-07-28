@@ -55,6 +55,7 @@ import org.springframework.util.ObjectUtils;
  * @see PropertySourcesPropertyResolver
  * @see MutablePropertySources
  * @see org.springframework.context.annotation.PropertySource
+ * 属性源，key-value 属性对抽象，用于配置数据。
  */
 public abstract class PropertySource<T> {
 

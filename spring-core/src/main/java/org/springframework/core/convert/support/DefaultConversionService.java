@@ -16,14 +16,14 @@
 
 package org.springframework.core.convert.support;
 
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.lang.Nullable;
+
 import java.nio.charset.Charset;
 import java.util.Currency;
 import java.util.Locale;
 import java.util.UUID;
-
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.lang.Nullable;
 
 /**
  * A specialization of {@link GenericConversionService} configured by default
@@ -37,6 +37,9 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @author Stephane Nicoll
  * @since 3.1
+ * ConversionService 接口的基础实现，适用于大部分条件下的转换工作，通过 ConfigurableConversionService 接口间接地将 ConverterRegistry 实现为注册 API 。
+ * 为 ConversionService 体系提供一些默认的转换器。在 DefaultConversionService 构造方法中就会添加默认的 Converter
+ * 它还提供了一些其他的方法如 addCollectionConverters()、addScalarConverters() 用于注册其他类型的转换器
  */
 public class DefaultConversionService extends GenericConversionService {
 

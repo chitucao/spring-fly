@@ -16,8 +16,6 @@
 
 package org.springframework.context.support;
 
-import java.util.Set;
-
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
@@ -25,6 +23,8 @@ import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.lang.Nullable;
+
+import java.util.Set;
 
 /**
  * A factory providing convenient access to a ConversionService configured with
@@ -47,6 +47,8 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @author Chris Beams
  * @since 3.0
+ *
+ * 可以用于注册自定义类型转换器
  */
 public class ConversionServiceFactoryBean implements FactoryBean<ConversionService>, InitializingBean {
 
@@ -67,6 +69,13 @@ public class ConversionServiceFactoryBean implements FactoryBean<ConversionServi
 		this.converters = converters;
 	}
 
+	/**
+	 * 首先调用 createConversionService() 初始化 conversionService，
+	 * 然后调用 ConversionServiceFactory.registerConverters() 将定义的 converters 注入到类型转换体系中。
+	 * @see #createConversionService()   其实就是创建一个 DefaultConversionService 实例对象
+	 * @see ConversionServiceFactory#registerConverters
+	 * 	该方法是将定义的 converter 注册到目标 ConverterRegistry 中，我们知道 ConverterRegistry 是一个 Converter 注册器，他定义了一系列注册方法。
+	 */
 	@Override
 	public void afterPropertiesSet() {
 		this.conversionService = createConversionService();

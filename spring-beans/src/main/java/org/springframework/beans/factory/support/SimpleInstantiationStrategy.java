@@ -16,20 +16,21 @@
 
 package org.springframework.beans.factory.support;
 
+import org.springframework.beans.BeanInstantiationException;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
+import org.springframework.lang.Nullable;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
-
-import org.springframework.beans.BeanInstantiationException;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.lang.Nullable;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Simple object instantiation strategy for use in a BeanFactory.
@@ -39,7 +40,20 @@ import org.springframework.util.StringUtils;
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
- * @since 1.1
+ * @since 11
+ * 对于InstantiationStrategy中三种实例化方式的实现
+ * 不支持方法注入方式的对象实例化，需要子类进行动态代理实例化。
+ *
+ * 对于覆盖方法的处理
+ * @see #instantiateWithMethodInjection
+ * 		构造方法实例化中，对于有覆盖方法的对象，通过 instantiateWithMethodInjection() 的实现任务交给了子类 CglibSubclassingInstantiationStrategy。
+ *
+ * CGLIB 实例化策略
+ *  @see CglibSubclassingInstantiationStrategy#instantiateWithMethodInjection
+ *
+ * 加载beanDefinition时解析覆盖方法的时机 <bean><bean/> 标签
+ * @see BeanDefinitionParserDelegate#parseLookupOverrideSubElements
+ * @see BeanDefinitionParserDelegate#parseReplacedMethodSubElements
  */
 public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
@@ -57,22 +71,34 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	}
 
 
+	/**
+	 * 无参构造实例化
+	 * 如果是构造方法实例化，则是先判断是否有 MethodOverrides，如果没有则是直接使用反射，如果有则就需要 CGLIB 实例化对象。
+	 */
+	//使用实例化策略实例化Bean对象
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
+		// 如果Bean定义中没有方法覆盖，则就不需要CGLIB父类类的方法，直接反射实例化
+		// 没有覆盖（这里指没有配置 lookup-method、replaced-method 标签或者 @Lookup 注解）
 		// Don't override the class with CGLIB if no overrides.
 		if (!bd.hasMethodOverrides()) {
+			// 获取对象的构造方法或工厂方法
+			// 该构造函数是经过前面 N 多复杂过程确认的构造函数
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
+				// 获取已经解析的构造函数
 				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
+				//如果没有构造方法且没有工厂方法
 				if (constructorToUse == null) {
+					//使用JDK的反射机制，判断要实例化的Bean是否是接口
 					final Class<?> clazz = bd.getBeanClass();
 					if (clazz.isInterface()) {
 						throw new BeanInstantiationException(clazz, "Specified class is an interface");
 					}
 					try {
 						if (System.getSecurityManager() != null) {
-							constructorToUse = AccessController.doPrivileged(
-									(PrivilegedExceptionAction<Constructor<?>>) clazz::getDeclaredConstructor);
+							//这里是一个匿名内置类，使用反射机制获取Bean的构造方法
+							constructorToUse = AccessController.doPrivileged((PrivilegedExceptionAction<Constructor<?>>) clazz::getDeclaredConstructor);
 						}
 						else {
 							constructorToUse = clazz.getDeclaredConstructor();
@@ -84,9 +110,11 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					}
 				}
 			}
+			//使用BeanUtils实例化，通过反射机制调用”构造方法.newInstance(arg)”来进行实例化
 			return BeanUtils.instantiateClass(constructorToUse);
 		}
 		else {
+			// 使用CGLIB来实例化对象
 			// Must generate CGLIB subclass.
 			return instantiateWithMethodInjection(bd, beanName, owner);
 		}
@@ -102,10 +130,14 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 		throw new UnsupportedOperationException("Method Injection not supported in SimpleInstantiationStrategy");
 	}
 
-	@Override
-	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
-			final Constructor<?> ctor, @Nullable Object... args) {
 
+	/**
+	 * 有参构造实例化
+	 */
+	@Override
+	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner, final Constructor<?> ctor, @Nullable Object... args) {
+
+		// 没有配置 lookup-method、replaced-method 标签或者 @Lookup 注解 直接使用反射实例化即可
 		if (!bd.hasMethodOverrides()) {
 			if (System.getSecurityManager() != null) {
 				// use own privileged to change accessibility (when security is on)
@@ -114,9 +146,12 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					return null;
 				});
 			}
+			// 通过BeanUtils直接使用构造器对象实例化bean
 			return (args != null ? BeanUtils.instantiateClass(ctor, args) : BeanUtils.instantiateClass(ctor));
 		}
 		else {
+			// 存在需要覆盖的方法或者动态替换的方法则需要使用 CGLIB 进行动态代理
+			// 生成CGLIB创建的子类对象
 			return instantiateWithMethodInjection(bd, beanName, owner, ctor, args);
 		}
 	}
@@ -133,6 +168,9 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 		throw new UnsupportedOperationException("Method Injection not supported in SimpleInstantiationStrategy");
 	}
 
+	/**
+	 * 工厂方法实例化，直接通过反射创建对象
+	 */
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
 			@Nullable Object factoryBean, final Method factoryMethod, @Nullable Object... args) {
@@ -151,6 +189,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 			Method priorInvokedFactoryMethod = currentlyInvokedFactoryMethod.get();
 			try {
 				currentlyInvokedFactoryMethod.set(factoryMethod);
+				// 利用 Java 反射执行工厂方法并返回创建好的实例
 				Object result = factoryMethod.invoke(factoryBean, args);
 				if (result == null) {
 					result = new NullBean();

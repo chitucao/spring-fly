@@ -16,6 +16,8 @@
 
 package org.springframework.core.io;
 
+import org.springframework.lang.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,8 +25,6 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-
-import org.springframework.lang.Nullable;
 
 /**
  * Interface for a resource descriptor that abstracts from the actual
@@ -56,6 +56,7 @@ public interface Resource extends InputStreamSource {
 	 * <p>This method performs a definitive existence check, whereas the
 	 * existence of a {@code Resource} handle only guarantees a valid
 	 * descriptor handle.
+	 * 资源是否存在
 	 */
 	boolean exists();
 
@@ -67,6 +68,7 @@ public interface Resource extends InputStreamSource {
 	 * However, a value of {@code false} is a definitive indication
 	 * that the resource content cannot be read.
 	 * @see #getInputStream()
+	 * 资源是否可读
 	 */
 	default boolean isReadable() {
 		return true;
@@ -77,6 +79,7 @@ public interface Resource extends InputStreamSource {
 	 * If {@code true}, the InputStream cannot be read multiple times,
 	 * and must be read and closed to avoid resource leaks.
 	 * <p>Will be {@code false} for typical resource descriptors.
+	 * 资源所代表的句柄是否被一个 stream 打开了
 	 */
 	default boolean isOpen() {
 		return false;
@@ -89,6 +92,7 @@ public interface Resource extends InputStreamSource {
 	 * <p>This is conservatively {@code false} by default.
 	 * @since 5.0
 	 * @see #getFile()
+	 * 是否为 File
 	 */
 	default boolean isFile() {
 		return false;
@@ -98,6 +102,7 @@ public interface Resource extends InputStreamSource {
 	 * Return a URL handle for this resource.
 	 * @throws IOException if the resource cannot be resolved as URL,
 	 * i.e. if the resource is not available as descriptor
+	 * 返回资源的 URL 的句柄
 	 */
 	URL getURL() throws IOException;
 
@@ -106,6 +111,7 @@ public interface Resource extends InputStreamSource {
 	 * @throws IOException if the resource cannot be resolved as URI,
 	 * i.e. if the resource is not available as descriptor
 	 * @since 2.5
+	 * 返回资源的 URI 的句柄
 	 */
 	URI getURI() throws IOException;
 
@@ -115,6 +121,7 @@ public interface Resource extends InputStreamSource {
 	 * absolute file path, i.e. if the resource is not available in a file system
 	 * @throws IOException in case of general resolution/reading failures
 	 * @see #getInputStream()
+	 * 返回资源的 File 的句柄
 	 */
 	File getFile() throws IOException;
 
@@ -128,6 +135,7 @@ public interface Resource extends InputStreamSource {
 	 * @throws IOException if the content channel could not be opened
 	 * @since 5.0
 	 * @see #getInputStream()
+	 * 返回 ReadableByteChannel
 	 */
 	default ReadableByteChannel readableChannel() throws IOException {
 		return Channels.newChannel(getInputStream());
@@ -137,6 +145,7 @@ public interface Resource extends InputStreamSource {
 	 * Determine the content length for this resource.
 	 * @throws IOException if the resource cannot be resolved
 	 * (in the file system or as some other known physical resource type)
+	 * 资源内容的长度
 	 */
 	long contentLength() throws IOException;
 
@@ -144,6 +153,7 @@ public interface Resource extends InputStreamSource {
 	 * Determine the last-modified timestamp for this resource.
 	 * @throws IOException if the resource cannot be resolved
 	 * (in the file system or as some other known physical resource type)
+	 * 资源最后的修改时间
 	 */
 	long lastModified() throws IOException;
 
@@ -152,6 +162,7 @@ public interface Resource extends InputStreamSource {
 	 * @param relativePath the relative path (relative to this resource)
 	 * @return the resource handle for the relative resource
 	 * @throws IOException if the relative resource cannot be determined
+	 * 根据资源的相对路径创建新资源
 	 */
 	Resource createRelative(String relativePath) throws IOException;
 
@@ -160,6 +171,7 @@ public interface Resource extends InputStreamSource {
 	 * part of the path: for example, "myfile.txt".
 	 * <p>Returns {@code null} if this type of resource does not
 	 * have a filename.
+	 * 资源的文件名
 	 */
 	@Nullable
 	String getFilename();
@@ -170,6 +182,7 @@ public interface Resource extends InputStreamSource {
 	 * <p>Implementations are also encouraged to return this value
 	 * from their {@code toString} method.
 	 * @see Object#toString()
+	 * 资源的描述
 	 */
 	String getDescription();
 

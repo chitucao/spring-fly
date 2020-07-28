@@ -153,6 +153,21 @@ import org.springframework.web.util.WebUtils;
  * @see org.springframework.web.HttpRequestHandler
  * @see org.springframework.web.servlet.mvc.Controller
  * @see org.springframework.web.context.ContextLoaderListener
+ *
+ * 前端控制器
+ * 	负责初始化 Spring MVC 的各个组件，以及处理客户端的请求，统一调度各个组件。
+ *
+ * @初始化方法入口
+ *  @see HttpServletBean#init()
+ *
+ * @Servlet的三个层次
+ *  @see HttpServletBean 直接继承自java的HttpServlet，其作用是将Servlet中配置的参数设置到相应的属性；
+ *  @see FrameworkServlet 初始化了WebApplicationContext；
+ *  @see DispatcherServlet 初始化了自身的9个组件。
+ *
+ * @初始化SpringMVC的九大组件
+ *  @see #initStrategies
+ *
  */
 @SuppressWarnings("serial")
 public class DispatcherServlet extends FrameworkServlet {
@@ -494,15 +509,25 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
+	//初始化策略
 	protected void initStrategies(ApplicationContext context) {
+		//多文件上传的组件
 		initMultipartResolver(context);
+		//初始化本地语言环境
 		initLocaleResolver(context);
+		//初始化模板处理器
 		initThemeResolver(context);
+		//handlerMapping
 		initHandlerMappings(context);
+		//初始化参数适配器
 		initHandlerAdapters(context);
+		//初始化异常拦截器
 		initHandlerExceptionResolvers(context);
+		//初始化视图预处理器
 		initRequestToViewNameTranslator(context);
+		//初始化视图转换器
 		initViewResolvers(context);
+		//FlashMap管理器
 		initFlashMapManager(context);
 	}
 

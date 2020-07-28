@@ -17,6 +17,8 @@
 package org.springframework.beans.factory.config;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
+import org.springframework.beans.factory.support.AbstractBeanFactory;
 import org.springframework.lang.Nullable;
 
 /**
@@ -39,6 +41,24 @@ import org.springframework.lang.Nullable;
  * @see DestructionAwareBeanPostProcessor
  * @see ConfigurableBeanFactory#addBeanPostProcessor
  * @see BeanFactoryPostProcessor
+ *
+ * 对应初始化的第二阶段
+ * 要是对 Spring 容器提供的 bean 实例对象进行有效的扩展，允许 Spring 在初始化 bean 阶段对其进行定制化修改，如处理标记接口或者为其提供代理实现。
+ *
+ * 执行时机
+ * @see AbstractAutowireCapableBeanFactory#initializeBean
+ *
+ * 1.在 BeanFactory.getBean() 的过程中根本就没有将我们自定义的 BeanPostProcessor 注入进来，使用之前要添加 {@link AbstractBeanFactory#addBeanPostProcessor(BeanPostProcessor)}  }
+ * 2.ApplicationContext能自动注册，不需要手动添加，通过registerBeanPostProcessors() 方法
+ *
+ * 特点、性质
+ * 1.BeanPostProcessor 的作用域是容器级别的，它只和所在的容器相关 ，当 BeanPostProcessor 完成注册后，它会应用于所有跟它在同一个容器内的 bean。
+ * 2.BeanFactory 和 ApplicationContext 对 BeanPostProcessor 的处理不同，
+ * 	ApplicationContext 会自动检测所有实现了 BeanPostProcessor 接口的 bean，并完成注册，
+ * 	但是使用 BeanFactory 容器时则需要手动调用 addBeanPostProcessor() 完成注册
+ * 3.ApplicationContext 的 BeanPostProcessor 支持 Ordered，而 BeanFactory 的 BeanPostProcessor 是不支持的，
+ * 	原因在于ApplicationContext 会对 BeanPostProcessor 进行 Ordered 检测并完成排序，
+ * 	而 BeanFactory 中的 BeanPostProcessor 只跟注册的顺序有关。
  */
 public interface BeanPostProcessor {
 

@@ -67,6 +67,17 @@ package org.springframework.core.env;
  * @see org.springframework.context.ConfigurableApplicationContext#getEnvironment
  * @see org.springframework.context.ConfigurableApplicationContext#setEnvironment
  * @see org.springframework.context.support.AbstractApplicationContext#createEnvironment
+ *
+ * 确定哪些配置文件（如果有）当前处于活动状态，以及默认情况下哪些配置文件（如果有）应处于活动状态。
+ * 提供访问和判断 profiles 的功能
+ *
+ * 环境，Profile 和 PropertyResolver 的组合。
+ * properties 的方法由 PropertyResolver 定义。
+ * profile 则表示当前的运行环境，对于应用程序中的 properties 而言，并不是所有的都会加载到系统中，只有其属性与 profile 一致才会被激活加载，
+ *
+ * properties 在几乎所有应用程序中都发挥着重要作用，并且有多种来源：
+ * 属性文件，JVM 系统属性，系统环境变量，JNDI，servlet 上下文参数，ad-hoc 属性对象，映射等。
+ * 同时它继承 PropertyResolver 接口，所以与属性相关的 Environment 对象其主要是为用户提供方便的服务接口，用于配置属性源和从中属性源中解析属性。
  */
 public interface Environment extends PropertyResolver {
 
@@ -82,6 +93,7 @@ public interface Environment extends PropertyResolver {
 	 * @see #getDefaultProfiles
 	 * @see ConfigurableEnvironment#setActiveProfiles
 	 * @see AbstractEnvironment#ACTIVE_PROFILES_PROPERTY_NAME
+	 * 返回此环境下激活的配置文件集
 	 */
 	String[] getActiveProfiles();
 
@@ -91,6 +103,7 @@ public interface Environment extends PropertyResolver {
 	 * @see #getActiveProfiles
 	 * @see ConfigurableEnvironment#setDefaultProfiles
 	 * @see AbstractEnvironment#DEFAULT_PROFILES_PROPERTY_NAME
+	 * 如果未设置激活配置文件，则返回默认的激活的配置文件集
 	 */
 	String[] getDefaultProfiles();
 

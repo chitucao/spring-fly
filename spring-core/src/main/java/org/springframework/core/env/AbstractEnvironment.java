@@ -16,22 +16,17 @@
 
 package org.springframework.core.env;
 
-import java.security.AccessControlException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.SpringProperties;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import java.security.AccessControlException;
+import java.util.*;
 
 /**
  * Abstract base class for {@link Environment} implementations. Supports the notion of
@@ -51,6 +46,18 @@ import org.springframework.util.StringUtils;
  * @since 3.1
  * @see ConfigurableEnvironment
  * @see StandardEnvironment
+ * 实现了 ConfigurableEnvironment 接口，默认属性和存储容器的定义，并且实现了 ConfigurableEnvironment 的方法，并且为子类预留可覆盖了扩展方法
+ * 允许通过设置 ACTIVE_PROFILES_PROPERTY_NAME 和DEFAULT_PROFILES_PROPERTY_NAME 属性指定活动和默认配置文件。
+ * 子类的主要区别在于它们默认添加的 PropertySource 对象。而 AbstractEnvironment 则没有添加任何内容。
+ * 子类应该通过受保护的 customizePropertySources(MutablePropertySources) 钩子提供属性源，
+ * 而客户端应该使用ConfigurableEnvironment.getPropertySources()进行自定义并对MutablePropertySources API进行操作。
+ * @see ACTIVE_PROFILES_PROPERTY_NAME	激活的配置
+ * @see DEFAULT_PROFILES_PROPERTY_NAME	默认的配置
+ * @see #setActiveProfiles
+ * 		该方法其实就是操作 activeProfiles 集合，在每次设置之前都会将该集合清空重新添加，添加之前调用 validateProfile() 对添加的 profile 进行校验
+ * @see #getActiveProfiles()
+ *		获取 activeProfiles 集合
+ * 		@see #doGetActiveProfiles()
  */
 public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 
@@ -234,6 +241,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * property and assign its value to the set of active profiles.
 	 * @see #getActiveProfiles()
 	 * @see #ACTIVE_PROFILES_PROPERTY_NAME
+	 * 如果 activeProfiles 为空，则从 Properties 中获取 spring.profiles.active 配置，如果不为空，则调用 setActiveProfiles() 设置 profile，最后返回。
 	 */
 	protected Set<String> doGetActiveProfiles() {
 		synchronized (this.activeProfiles) {
@@ -248,6 +256,9 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 		}
 	}
 
+	/**
+	 * @see #validateProfile	这个校验过程比较弱，子类可以提供更加严格的校验规则。
+	 */
 	@Override
 	public void setActiveProfiles(String... profiles) {
 		Assert.notNull(profiles, "Profile array must not be null");

@@ -16,15 +16,11 @@
 
 package org.springframework.beans;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * The default implementation of the {@link PropertyValues} interface.
@@ -162,6 +158,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * corresponding property or getting merged with it (if applicable).
 	 * @param pv the PropertyValue object to add
 	 * @return this in order to allow for adding multiple property values in a chain
+	 * 添加 PropertyValue 对象，替换或者合并相同的属性值。
 	 */
 	public MutablePropertyValues addPropertyValue(PropertyValue pv) {
 		for (int i = 0; i < this.propertyValueList.size(); i++) {

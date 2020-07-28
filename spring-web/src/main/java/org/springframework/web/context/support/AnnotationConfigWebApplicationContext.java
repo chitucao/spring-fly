@@ -16,22 +16,18 @@
 
 package org.springframework.web.context.support;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.annotation.AnnotatedBeanDefinitionReader;
-import org.springframework.context.annotation.AnnotationConfigRegistry;
-import org.springframework.context.annotation.AnnotationConfigUtils;
-import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
-import org.springframework.context.annotation.ScopeMetadataResolver;
+import org.springframework.context.annotation.*;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.ContextLoader;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * {@link org.springframework.web.context.WebApplicationContext WebApplicationContext}
@@ -80,9 +76,12 @@ import org.springframework.web.context.ContextLoader;
  * @author Juergen Hoeller
  * @since 3.0
  * @see org.springframework.context.annotation.AnnotationConfigApplicationContext
+ *
+ * @对于注解bean的载入和父类有不同（扫描和注册相同，AnnotationConfigRegistry接口）
+ *  @see #loadBeanDefinitions
+ *
  */
-public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWebApplicationContext
-		implements AnnotationConfigRegistry {
+public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWebApplicationContext implements AnnotationConfigRegistry {
 
 	@Nullable
 	private BeanNameGenerator beanNameGenerator;
@@ -190,19 +189,26 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 	 * @see AnnotatedBeanDefinitionReader
 	 * @see ClassPathBeanDefinitionScanner
 	 */
+	//载入注解Bean定义资源
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) {
+		//为容器设置注解Bean定义读取器
 		AnnotatedBeanDefinitionReader reader = getAnnotatedBeanDefinitionReader(beanFactory);
+		//为容器设置类路径Bean定义扫描器
 		ClassPathBeanDefinitionScanner scanner = getClassPathBeanDefinitionScanner(beanFactory);
 
+		//获取容器的Bean名称生成器
 		BeanNameGenerator beanNameGenerator = getBeanNameGenerator();
+		//为注解Bean定义读取器和类路径扫描器设置Bean名称生成器
 		if (beanNameGenerator != null) {
 			reader.setBeanNameGenerator(beanNameGenerator);
 			scanner.setBeanNameGenerator(beanNameGenerator);
 			beanFactory.registerSingleton(AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR, beanNameGenerator);
 		}
 
+		//获取容器的作用域元信息解析器
 		ScopeMetadataResolver scopeMetadataResolver = getScopeMetadataResolver();
+		//为注解Bean定义读取器和类路径扫描器设置作用域元信息解析器
 		if (scopeMetadataResolver != null) {
 			reader.setScopeMetadataResolver(scopeMetadataResolver);
 			scanner.setScopeMetadataResolver(scopeMetadataResolver);
@@ -224,10 +230,13 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 			scanner.scan(StringUtils.toStringArray(this.basePackages));
 		}
 
+		//获取容器定义的Bean定义资源路径
 		String[] configLocations = getConfigLocations();
+		//如果定位的Bean定义资源路径不为空
 		if (configLocations != null) {
 			for (String configLocation : configLocations) {
 				try {
+					//使用当前容器的类加载器加载定位路径的字节码类文件
 					Class<?> clazz = ClassUtils.forName(configLocation, getClassLoader());
 					if (logger.isInfoEnabled()) {
 						logger.info("Successfully resolved class for [" + configLocation + "]");
@@ -239,6 +248,8 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 						logger.debug("Could not load class for config location [" + configLocation +
 								"] - trying package scan. " + ex);
 					}
+					//如果容器类加载器加载定义路径的Bean定义资源失败
+					//则启用容器类路径扫描器扫描给定路径包及其子包中的类
 					int count = scanner.scan(configLocation);
 					if (logger.isInfoEnabled()) {
 						if (count == 0) {

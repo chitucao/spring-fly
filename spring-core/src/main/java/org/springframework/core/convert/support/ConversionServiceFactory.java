@@ -16,13 +16,13 @@
 
 package org.springframework.core.convert.support;
 
-import java.util.Set;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.lang.Nullable;
+
+import java.util.Set;
 
 /**
  * A factory for common {@link org.springframework.core.convert.ConversionService}
@@ -40,6 +40,8 @@ public abstract class ConversionServiceFactory {
 	 * @param converters the converter objects: implementing {@link Converter},
 	 * {@link ConverterFactory}, or {@link GenericConverter}
 	 * @param registry the target registry
+	 * 调用 ConverterRegistry 的 addConverter() 方法将转换器注册到容器中。
+	 * 在我们使用 Spring 容器的时候，Spring 将会自动识别出 IOC 容器中注册的 ConversionService 并且在 bean 属性注入阶段使用自定义的转换器完成属性的转换了。
 	 */
 	public static void registerConverters(@Nullable Set<?> converters, ConverterRegistry registry) {
 		if (converters != null) {

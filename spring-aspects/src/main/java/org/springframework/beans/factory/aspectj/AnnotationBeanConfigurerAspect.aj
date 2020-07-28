@@ -55,7 +55,8 @@ public aspect AnnotationBeanConfigurerAspect extends AbstractInterfaceDrivenDepe
 		this.beanConfigurerSupport.setBeanFactory(beanFactory);
 	}
 
-	public void afterPropertiesSet() {
+	@Override
+    public void afterPropertiesSet() {
 		this.beanConfigurerSupport.afterPropertiesSet();
 	}
 
@@ -63,7 +64,8 @@ public aspect AnnotationBeanConfigurerAspect extends AbstractInterfaceDrivenDepe
 		this.beanConfigurerSupport.configureBean(bean);
 	}
 
-	public void destroy() {
+	@Override
+    public void destroy() {
 		this.beanConfigurerSupport.destroy();
 	}
 

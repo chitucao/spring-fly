@@ -16,37 +16,19 @@
 
 package org.springframework.core.convert.support;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import org.springframework.core.DecoratingProxy;
 import org.springframework.core.ResolvableType;
-import org.springframework.core.convert.ConversionException;
-import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalConverter;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterFactory;
-import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.core.convert.*;
+import org.springframework.core.convert.converter.*;
 import org.springframework.core.convert.converter.GenericConverter.ConvertiblePair;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
+
+import java.lang.reflect.Array;
+import java.util.*;
 
 /**
  * Base {@link ConversionService} implementation suitable for use in most environments.
@@ -59,6 +41,13 @@ import org.springframework.util.StringUtils;
  * @author Phillip Webb
  * @author David Haraburda
  * @since 3.0
+ *
+ * ConversionService 接口的基础实现，适用于大部分条件下的转换工作，主要用于转换器的注册和调用。
+ * 通过 ConfigurableConversionService 接口间接地将 ConverterRegistry 实现为注册 API 。
+ * GenericConversionService 作为一个基础实现类，它即支持了不同类型之间的转换，也对各类型转换器进行管理，
+ * 主要是通过一个 Map 类型的 converterCache 和一个内部类 Converters。
+ *
+ * @see #addConverter(Converter) 转换器的注入
  */
 public class GenericConversionService implements ConfigurableConversionService {
 
@@ -81,6 +70,12 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 	// ConverterRegistry implementation
 
+	/**
+	 * 首先根据 converter 获取 ResolvableType，然后将其与 converter 封装成一个 ConverterAdapter 实例，最后调用 addConverter()。
+	 * ResolvableType 用于封装 Java 的类型。
+	 * ConverterAdapter 则是 Converter 的一个适配器， 它实现了 GenericConverter 和 ConditionalConverter 两个类型转换器。
+	 * @see #addConverter(GenericConverter)
+	 */
 	@Override
 	public void addConverter(Converter<?, ?> converter) {
 		ResolvableType[] typeInfo = getRequiredTypeInfo(converter.getClass(), Converter.class);
@@ -100,6 +95,9 @@ public class GenericConversionService implements ConfigurableConversionService {
 				converter, ResolvableType.forClass(sourceType), ResolvableType.forClass(targetType)));
 	}
 
+	/**
+	 * @see Converters#add(GenericConverter) 
+	 */
 	@Override
 	public void addConverter(GenericConverter converter) {
 		this.converters.add(converter);
@@ -174,6 +172,13 @@ public class GenericConversionService implements ConfigurableConversionService {
 		return (T) convert(source, TypeDescriptor.forObject(source), TypeDescriptor.valueOf(targetType));
 	}
 
+	/**
+	 * source：要转换的源对象，可以为 null
+	 * sourceType：source 的类型的上下文，如果 source 为 null，则可以为 null
+	 * targetType：source 要转换的类型的上下文。
+	 *
+	 * @see #getConverter
+	 */
 	@Override
 	@Nullable
 	public Object convert(@Nullable Object source, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
@@ -186,6 +191,11 @@ public class GenericConversionService implements ConfigurableConversionService {
 			throw new IllegalArgumentException("Source to convert from must be an instance of [" +
 					sourceType + "]; instead it was a [" + source.getClass().getName() + "]");
 		}
+
+		/**
+		 * 首先根据 sourceType 和 targetType 调用 getConverter() 获取 GenericConverter 对象 converter ，
+		 * 如果 converter 为 null，则调用 handleConverterNotFound()，否则调用 handleResult() 方法。
+		 */
 		GenericConverter converter = getConverter(sourceType, targetType);
 		if (converter != null) {
 			Object result = ConversionUtils.invokeConverter(converter, source, sourceType, targetType);
@@ -248,6 +258,16 @@ public class GenericConversionService implements ConfigurableConversionService {
 	 * @return the generic converter that will perform the conversion,
 	 * or {@code null} if no suitable converter was found
 	 * @see #getDefaultConverter(TypeDescriptor, TypeDescriptor)
+	 *
+	 * 从 converterCache 缓存中获取，如果存在返回，否则从 converters 中获取，然后加入到 converterCache 缓存中。
+	 * converterCache 和 converters 是 GenericConversionService 维护的两个很重要的对象，
+	 * 其中 converterCache 用于存储 GenericConverter ，converters 对象为 GenericConversionService 的内部类。
+	 *
+	 * @see Converters
+	 * 		用于管理所有注册的转换器，其内部维护一个 Set 和 Map 的数据结构用于管理转换器
+	 * 		同时提供了相应的方法（如 add、remove）操作这两个集合。
+	 * @see Converters#find(TypeDescriptor, TypeDescriptor) 
+	 *
 	 */
 	@Nullable
 	protected GenericConverter getConverter(TypeDescriptor sourceType, TypeDescriptor targetType) {
@@ -257,6 +277,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 			return (converter != NO_MATCH ? converter : null);
 		}
 
+		// 在 getConverter() 中如果缓存 converterCache 中 不存在，则调用 Converters 对象的 find() 方法获取相应的 GenericConverter
 		converter = this.converters.find(sourceType, targetType);
 		if (converter == null) {
 			converter = getDefaultConverter(sourceType, targetType);
@@ -503,6 +524,15 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 		private final Map<ConvertiblePair, ConvertersForPair> converters = new LinkedHashMap<>(36);
 
+		/**
+		 * 首先调用 getConvertibleTypes() 获取 ConvertiblePair 集合，
+		 * 如果为空，则加入到 globalConverters 集合中，否则通过迭代的方式依次添加。
+		 * @see ConvertiblePair	为 source-to-targer 的持有者，它持有 source 和 target 的 class 类型
+		 *
+		 * @see ConvertersForPair
+		 * 在迭代过程中会根据 ConvertiblePair 获取相应的 @see ConvertersForPair ，然后 converter 转换器加入其中，
+		 *ConvertiblePair 用于管理使用特定GenericConverter.ConvertiblePair 注册的转换器。
+		 */
 		public void add(GenericConverter converter) {
 			Set<ConvertiblePair> convertibleTypes = converter.getConvertibleTypes();
 			if (convertibleTypes == null) {
@@ -538,6 +568,8 @@ public class GenericConversionService implements ConfigurableConversionService {
 		 * @param sourceType the source type
 		 * @param targetType the target type
 		 * @return a matching {@link GenericConverter}, or {@code null} if none found
+		 * 在 find() 中会根据 sourceType 和 targetType 去查询 Converters 中维护的 Map 中是否包括支持的注册类型，
+		 * 如果存在返回 GenericConverter ，如果没有存在返回 null。
 		 */
 		@Nullable
 		public GenericConverter find(TypeDescriptor sourceType, TypeDescriptor targetType) {
@@ -653,6 +685,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 	/**
 	 * Manages converters registered with a specific {@link ConvertiblePair}.
+	 * 其实内部就是维护一个 LinkedList 集合。他内部有两个方法：add() 和 getConverter()
 	 */
 	private static class ConvertersForPair {
 

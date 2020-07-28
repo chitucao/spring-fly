@@ -34,6 +34,9 @@ import org.springframework.util.StringUtils;
  * @since 1.1
  * @see PropertiesBeanDefinitionReader
  * @see org.springframework.beans.factory.xml.DefaultBeanDefinitionDocumentReader
+ *
+ * @see将解析的BeanDefinitionHold注册到容器中
+ * @see #registerBeanDefinition
  */
 public class BeanDefinitionReaderUtils {
 
@@ -57,12 +60,16 @@ public class BeanDefinitionReaderUtils {
 	public static AbstractBeanDefinition createBeanDefinition(
 			@Nullable String parentName, @Nullable String className, @Nullable ClassLoader classLoader) throws ClassNotFoundException {
 
+		// 创建 GenericBeanDefinition 对象
 		GenericBeanDefinition bd = new GenericBeanDefinition();
+		// 设置 parentName
 		bd.setParentName(parentName);
 		if (className != null) {
+			// 设置 beanClass
 			if (classLoader != null) {
 				bd.setBeanClass(ClassUtils.forName(className, classLoader));
 			}
+			// 设置 beanClassName
 			else {
 				bd.setBeanClassName(className);
 			}
@@ -141,14 +148,17 @@ public class BeanDefinitionReaderUtils {
 	 * @param registry the bean factory to register with
 	 * @throws BeanDefinitionStoreException if registration failed
 	 */
-	public static void registerBeanDefinition(
-			BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry)
-			throws BeanDefinitionStoreException {
+	//将解析的BeanDefinitionHold注册到容器中
+	public static void registerBeanDefinition(BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry) throws BeanDefinitionStoreException {
 
+		//获取解析的BeanDefinition的名称
 		// Register bean definition under primary name.
 		String beanName = definitionHolder.getBeanName();
+		//向IOC容器注册BeanDefinition
+		//真正完成注册功能的是DefaultListableBeanFactory
 		registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());
 
+		//如果解析的BeanDefinition有别名，向容器为其注册别名
 		// Register aliases for bean name, if any.
 		String[] aliases = definitionHolder.getAliases();
 		if (aliases != null) {

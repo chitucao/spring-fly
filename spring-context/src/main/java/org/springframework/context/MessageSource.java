@@ -16,9 +16,11 @@
 
 package org.springframework.context;
 
-import java.util.Locale;
-
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.AbstractMessageSource;
 import org.springframework.lang.Nullable;
+
+import java.util.Locale;
 
 /**
  * Strategy interface for resolving messages, with support for the parameterization
@@ -36,6 +38,11 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @see org.springframework.context.support.ResourceBundleMessageSource
  * @see org.springframework.context.support.ReloadableResourceBundleMessageSource
+ *
+ * 实现位置
+ * @see AbstractApplicationContext#getMessage
+ * 		AbstractApplicationContext 中，它持有一个 MessageSource 实例，将 getMessage() 的实现给该实例来实现
+ * 		@see AbstractMessageSource#getMessage(String, Object[], Locale)  真正实现是在 AbstractMessageSource 中
  */
 public interface MessageSource {
 

@@ -16,18 +16,14 @@
 
 package org.springframework.beans.factory.config;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringValueResolver;
+
+import java.util.*;
 
 /**
  * Visitor class for traversing {@link BeanDefinition} objects, in particular
@@ -74,6 +70,8 @@ public class BeanDefinitionVisitor {
 	 * and ConstructorArgumentValues contained in them.
 	 * @param beanDefinition the BeanDefinition object to traverse
 	 * @see #resolveStringValue(String)
+	 * 可以看到该方法基本访问了 BeanDefinition 中所有值得访问的东西了，
+	 * 包括 parent 、class 、factory-bean 、factory-method 、scope 、property 、constructor-arg
 	 */
 	public void visitBeanDefinition(BeanDefinition beanDefinition) {
 		visitParentName(beanDefinition);
@@ -82,6 +80,7 @@ public class BeanDefinitionVisitor {
 		visitFactoryMethodName(beanDefinition);
 		visitScope(beanDefinition);
 		if (beanDefinition.hasPropertyValues()) {
+			// 关注
 			visitPropertyValues(beanDefinition.getPropertyValues());
 		}
 		if (beanDefinition.hasConstructorArgumentValues()) {
@@ -141,6 +140,7 @@ public class BeanDefinitionVisitor {
 		}
 	}
 
+	// 过程就是对属性数组进行遍历，调用 resolveValue() 对属性进行解析获取最新值，如果新值和旧值不等，则用新值替换旧值。
 	protected void visitPropertyValues(MutablePropertyValues pvs) {
 		PropertyValue[] pvArray = pvs.getPropertyValues();
 		for (PropertyValue pv : pvArray) {

@@ -39,6 +39,9 @@ import org.springframework.core.convert.TypeDescriptor;
  * @see GenericConverter
  * @see ConverterFactory
  * @see ConditionalGenericConverter
+ * 用于表示有条件的类型转换，通过转入的sourceType 与 targetType 判断转换能否匹配，只有可匹配的转换才会调用convert 方法进行转换
+ * 详细使用可以看其子类
+ * 有条件的 source -> target 类型转换
  */
 public interface ConditionalConverter {
 

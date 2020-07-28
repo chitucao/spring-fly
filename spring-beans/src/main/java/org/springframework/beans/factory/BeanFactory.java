@@ -17,6 +17,10 @@
 package org.springframework.beans.factory;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 
@@ -112,6 +116,31 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.config.BeanPostProcessor#postProcessAfterInitialization
  * @see DisposableBean#destroy
  * @see org.springframework.beans.factory.support.RootBeanDefinition#getDestroyMethodName
+ * @Bean的实例化时机
+ * 	 Spring 并不是一启动容器就开启 bean 的实例化进程，只有当客户端通过显示或者隐式的方式调用 BeanFactory 的 getBean() 方法来请求某个实例对象的时候，
+ * 	 它才会触发相应 bean 的实例化进程。
+ * 	 当然也可以选择直接使用 ApplicationContext 容器，因为该容器启动的时候会立刻调用注册到该容器所有 bean 定义的实例化方法。
+ *   对于 BeanFactory 容器而言并不是所有的 getBean() 方法都会触发实例化进程，比如 signleton 类型的 bean，
+ *   该类型的 bean 只会在第一次调用 getBean() 的时候才会触发，而后续的调用则会直接返回容器缓存中的实例对象。
+ *
+ * @重要方法
+ *  @see #getBean bean实例化的入口
+ *
+ * @重要子类
+ *  @see HierarchicalBeanFactory	 继承关系
+ *  @see ListableBeanFactory		 可列表化
+ *  @see AutowireCapableBeanFactory  定义自动装配原则
+ *  @see DefaultListableBeanFactory	 最终的默认实现类（实现上面几个接口）
+ *
+ * @具体的IOC实现
+ *  @see ApplicationContext			高级容器
+ *  @see GenericApplicationContext
+ *  @see ClasspathXmlApplicationContext
+ *  @see XmlWebApplicationContext
+ *  @see AnnotationConfigApplicationContext
+ *  @see FileSystemXmlApplicationContext
+ *
+ * @see AbstractAutowireCapableBeanFactory#doCreateBean(String, RootBeanDefinition, Object[]) 真正的实例化过程
  */
 public interface BeanFactory {
 
@@ -121,6 +150,8 @@ public interface BeanFactory {
 	 * {@code myJndiObject} is a FactoryBean, getting {@code &myJndiObject}
 	 * will return the factory, not the instance returned by the factory.
 	 */
+	//对FactoryBean的转义定义，因为如果使用bean的名字检索FactoryBean得到的对象是工厂生成的对象，
+	//如果需要得到工厂本身，需要转义
 	String FACTORY_BEAN_PREFIX = "&";
 
 
@@ -136,6 +167,7 @@ public interface BeanFactory {
 	 * @throws NoSuchBeanDefinitionException if there is no bean with the specified name
 	 * @throws BeansException if the bean could not be obtained
 	 */
+	//根据bean的名字，获取在IOC容器中得到bean实例
 	Object getBean(String name) throws BeansException;
 
 	/**
@@ -156,6 +188,7 @@ public interface BeanFactory {
 	 * @throws BeanNotOfRequiredTypeException if the bean is not of the required type
 	 * @throws BeansException if the bean could not be created
 	 */
+	//根据bean的名字和Class类型来得到bean实例，增加了类型安全验证机制。
 	<T> T getBean(String name, @Nullable Class<T> requiredType) throws BeansException;
 
 	/**
@@ -226,6 +259,7 @@ public interface BeanFactory {
 	 * @param name the name of the bean to query
 	 * @return whether a bean with the given name is present
 	 */
+	//提供对bean的检索，看看是否在IOC容器有这个名字的bean
 	boolean containsBean(String name);
 
 	/**
@@ -243,6 +277,7 @@ public interface BeanFactory {
 	 * @see #getBean
 	 * @see #isPrototype
 	 */
+	//根据bean名字得到bean实例，并同时判断这个bean是不是单例
 	boolean isSingleton(String name) throws NoSuchBeanDefinitionException;
 
 	/**
@@ -311,6 +346,7 @@ public interface BeanFactory {
 	 * @see #getBean
 	 * @see #isTypeMatch
 	 */
+	//得到bean实例的Class类型
 	@Nullable
 	Class<?> getType(String name) throws NoSuchBeanDefinitionException;
 
@@ -325,6 +361,7 @@ public interface BeanFactory {
 	 * @return the aliases, or an empty array if none
 	 * @see #getBean
 	 */
+	//得到bean的别名，如果根据别名检索，那么其原名也会被检索出来
 	String[] getAliases(String name);
 
 }

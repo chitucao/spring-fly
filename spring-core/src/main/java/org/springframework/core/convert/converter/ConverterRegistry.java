@@ -22,6 +22,7 @@ package org.springframework.core.convert.converter;
  * @author Keith Donald
  * @author Juergen Hoeller
  * @since 3.0
+ * ConverterRegistry 提供了类型转换器的管理功能，他提供了四个 add 和 一个 remove 方法，支持注册/删除相应的类型转换器。
  */
 public interface ConverterRegistry {
 

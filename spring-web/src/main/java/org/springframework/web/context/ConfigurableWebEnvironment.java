@@ -31,6 +31,7 @@ import org.springframework.lang.Nullable;
  * @author Chris Beams
  * @since 3.1.2
  * @see ConfigurableWebApplicationContext#getEnvironment()
+ * 提供配置 Servlet 上下文和 Servlet 参数的功能
  */
 public interface ConfigurableWebEnvironment extends ConfigurableEnvironment {
 

@@ -16,10 +16,12 @@
 
 package org.springframework.context;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.HierarchicalBeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.core.env.EnvironmentCapable;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.lang.Nullable;
 
@@ -54,6 +56,38 @@ import org.springframework.lang.Nullable;
  * @see ConfigurableApplicationContext
  * @see org.springframework.beans.factory.BeanFactory
  * @see org.springframework.core.io.ResourceLoader
+ *
+ * @对BeanFactory的增强
+ *  1.继承 MessageSource，提供国际化的标准访问策略。
+ *  2.继承 ApplicationEventPublisher ，提供强大的事件机制。
+ *  3.扩展 ResourceLoader，实现ResourcePatternResolver接口，可以用来加载多个 Resource，可以灵活访问不同的资源。
+ *
+ * @特性——上下文嵌套
+ *  允许上文下嵌套，过通保持父上文下以可维持一个上下文体系。对千Bean的查找可以在这个上下文体系中发生首先检查当前上下文其次是父上下文逐级向上，
+ *  这样为不同的Spring应用提供了一个共享的Bean 定义环境。
+ *
+ * @几个重要的接口
+ * @see BeanFactory Spring 管理 Bean 的顶层接口，我们可以认为他是一个简易版的 Spring 容器。
+ * 		ApplicationContext 继承 BeanFactory 的两个子类：HierarchicalBeanFactory 和 ListableBeanFactory。
+ *		@see HierarchicalBeanFactory 是一个具有层级关系的 BeanFactory，拥有属性 parentBeanFactory。
+ * 		@see ListableBeanFactory 实现了枚举方法可以列举出当前 BeanFactory 中所有的 bean 对象而不必根据 name 一个一个的获取。
+ * @see ApplicationEventPublisher
+ * 		用于封装事件发布功能的接口，向事件监听器（Listener）发送事件消息。
+ * @see ResourceLoader
+ * 		Spring 加载资源的顶层接口，用于从一个源加载资源文件。
+ * 		ApplicationContext 继承 ResourceLoader 的子类 ResourcePatternResolver，该接口是将 location 解析为 Resource 对象的策略接口。
+ * @see MessageSource
+ * 		解析 message 的策略接口，用不支撑国际化等功能。
+ * @see EnvironmentCapable
+ * 		用于获取 Environment 的接口。
+ *
+ * 两个重要的子接口
+ * @see org.springframework.web.context.WebApplicationContext
+ * 		 只有一个getServletContext()方法 ，用于给 servlet 提供上下文信息
+ * @see ConfigurableApplicationContext
+ *
+ * 这两个子接口共同的子接口
+ * @see org.springframework.web.context.ConfigurableWebApplicationContext
  */
 public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory, HierarchicalBeanFactory,
 		MessageSource, ApplicationEventPublisher, ResourcePatternResolver {

@@ -35,10 +35,12 @@ public interface ProtocolResolver {
 	/**
 	 * Resolve the given location against the given resource loader
 	 * if this implementation's protocol matches.
-	 * @param location the user-specified resource location
-	 * @param resourceLoader the associated resource loader
-	 * @return a corresponding {@code Resource} handle if the given location
+	 * @param location the user-specified resource location  资源路径
+	 * @param resourceLoader the associated resource loader		指定的加载器 ResourceLoader
+	 * @return a corresponding {@code Resource} handle if the given location  返回为相应的 Resource
 	 * matches this resolver's protocol, or {@code null} otherwise
+	 * 使用指定的 ResourceLoader ，解析指定的 location 。
+	 * 若成功，则返回对应的 Resource 。
 	 */
 	@Nullable
 	Resource resolve(String location, ResourceLoader resourceLoader);

@@ -16,6 +16,8 @@
 
 package org.springframework.context;
 
+import org.springframework.context.support.AbstractApplicationContext;
+
 /**
  * A common interface defining methods for start/stop lifecycle control.
  * The typical use case for this is to control asynchronous processing.
@@ -46,6 +48,16 @@ package org.springframework.context;
  * @see ConfigurableApplicationContext
  * @see org.springframework.jms.listener.AbstractMessageListenerContainer
  * @see org.springframework.scheduling.quartz.SchedulerFactoryBean
+ *
+ * 一个管理生命周期的接口
+ * 实现位置
+ * 	在 AbstractApplicationContext 中存在一个 LifecycleProcessor 类型的实例对象 lifecycleProcessor，
+ * 	AbstractApplicationContext 中关于 Lifecycle 接口的实现都是委托给 lifecycleProcessor 实现的。
+ * 		在启动、停止的时候会分别发布 ContextStartedEvent 和 ContextStoppedEvent 事件。
+ * 		@see AbstractApplicationContext#start()
+ * 		@see AbstractApplicationContext#stop()
+ * 		@see AbstractApplicationContext#isRunning()
+ *
  */
 public interface Lifecycle {
 

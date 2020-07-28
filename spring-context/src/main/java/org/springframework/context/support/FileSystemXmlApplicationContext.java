@@ -143,7 +143,6 @@ public class FileSystemXmlApplicationContext extends AbstractXmlApplicationConte
 		}
 	}
 
-
 	/**
 	 * Resolve resource paths as file system paths.
 	 * <p>Note: Even if a given path starts with a slash, it will get
@@ -158,6 +157,7 @@ public class FileSystemXmlApplicationContext extends AbstractXmlApplicationConte
 		if (path.startsWith("/")) {
 			path = path.substring(1);
 		}
+		//这里使用文件系统资源对象来定义bean文件
 		return new FileSystemResource(path);
 	}
 

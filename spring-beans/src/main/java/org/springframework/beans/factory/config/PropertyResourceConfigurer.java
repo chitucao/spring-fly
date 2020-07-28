@@ -16,16 +16,16 @@
 
 package org.springframework.beans.factory.config;
 
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Properties;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.core.io.support.PropertiesLoaderSupport;
 import org.springframework.util.ObjectUtils;
+
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Properties;
 
 /**
  * Allows for configuration of individual bean property values from a property resource,
@@ -77,12 +77,15 @@ public abstract class PropertyResourceConfigurer extends PropertiesLoaderSupport
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		try {
+			// 返回合并的 Properties 实例，Properties 实例维护这一组 key-value ，其实就是 Properties 配置文件中的内容。
 			Properties mergedProps = mergeProperties();
 
 			// Convert the merged properties, if necessary.
+			// 转换合并的值，其实就是将原始值替换为真正的值
 			convertProperties(mergedProps);
 
 			// Let the subclass process the properties.
+			// 前面两个步骤已经将配置文件中的值进行了处理，那么该方法就是真正的替换过程，该方法由子类实现。
 			processProperties(beanFactory, mergedProps);
 		}
 		catch (IOException ex) {
